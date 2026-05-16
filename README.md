@@ -1,2 +1,5 @@
 # Projet_Simulation
-Medium Access Control
+
+GE Shuning - GUO Xuxin
+
+
