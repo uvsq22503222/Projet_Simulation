@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import heapq
 import numpy as np
 
+
 ARRIVAL = "arrival"
 START_TX = "start_tx"
 END_TX = "end_tx"
@@ -13,7 +14,12 @@ class SimulationResult:
     throughput: list
     mean_clients: list
     loss_rate: list
+    collision_rate: list
     final_throughput: float
+    collisions: int
+    losses: int
+    arrivals: int
+    successes: int
 
 
 def expo_mean(mean, rng):
@@ -39,11 +45,13 @@ def simulate(N, K, lambd, tau, T, seed=None):
     successes = 0
     losses = 0
     arrivals = 0
+    collisions = 0
 
     times = []
     throughput_values = []
     mean_clients_values = []
     loss_rate_values = []
+    collision_rate_values = []
 
     for s in range(N):
         first_arrival = expo_mean(1 / lambd, rng)
@@ -85,23 +93,26 @@ def simulate(N, K, lambd, tau, T, seed=None):
             transmitting[station] = True
             collided[station] = False
 
-            active = [s for s in range(N)
-                      if transmitting[s] and s != station]
+            active = [
+                s for s in range(N)
+                if transmitting[s] and s != station
+            ]
 
             if active:
                 collided[station] = True
+                collisions += 1
 
                 for other in active:
                     collided[other] = True
 
-            schedule(event_queue,
-                     current_time + 1,
-                     END_TX,
-                     station)
+            schedule(event_queue, current_time + 1, END_TX, station)
 
         elif event_type == END_TX:
 
             transmitting[station] = False
+
+            if queues[station] <= 0:
+                continue
 
             if collided[station]:
 
@@ -115,11 +126,7 @@ def simulate(N, K, lambd, tau, T, seed=None):
 
                 if queues[station] > 0:
                     scheduled_start[station] = True
-
-                    schedule(event_queue,
-                             current_time + delay,
-                             START_TX,
-                             station)
+                    schedule(event_queue, current_time + delay, START_TX, station)
 
             else:
 
@@ -131,17 +138,18 @@ def simulate(N, K, lambd, tau, T, seed=None):
 
                 if queues[station] > 0:
                     scheduled_start[station] = True
-                    schedule(event_queue,
-                             current_time,
-                             START_TX,
-                             station)
+                    schedule(event_queue, current_time, START_TX, station)
 
         times.append(current_time)
 
-        throughput_values.append(successes / current_time)
+        if current_time > 0:
+            throughput_values.append(successes / current_time)
+            collision_rate_values.append(collisions / current_time)
+        else:
+            throughput_values.append(0)
+            collision_rate_values.append(0)
 
         total_clients = sum(queues)
-
         mean_clients_values.append(total_clients / N)
 
         if arrivals > 0:
@@ -154,5 +162,10 @@ def simulate(N, K, lambd, tau, T, seed=None):
         throughput=throughput_values,
         mean_clients=mean_clients_values,
         loss_rate=loss_rate_values,
-        final_throughput=successes / T
+        collision_rate=collision_rate_values,
+        final_throughput=successes / T,
+        collisions=collisions,
+        losses=losses,
+        arrivals=arrivals,
+        successes=successes
     )
