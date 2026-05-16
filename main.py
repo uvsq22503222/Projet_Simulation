@@ -1,7 +1,10 @@
+import os
 import matplotlib.pyplot as plt
 
 from simulateur import simulate
 
+
+os.makedirs("resultats", exist_ok=True)
 
 N = 5
 K = 10
@@ -25,7 +28,8 @@ plt.xlabel("Temps")
 plt.ylabel("n(t)/t")
 plt.title("Débit du système")
 plt.grid()
-plt.show()
+plt.savefig("resultats/debit_systeme.png", dpi=300)
+plt.close()
 
 plt.figure()
 plt.plot(result.times, result.mean_clients)
@@ -33,7 +37,8 @@ plt.xlabel("Temps")
 plt.ylabel("Nombre moyen de clients")
 plt.title("Clients moyens")
 plt.grid()
-plt.show()
+plt.savefig("resultats/clients_moyens.png", dpi=300)
+plt.close()
 
 plt.figure()
 plt.plot(result.times, result.loss_rate)
@@ -41,7 +46,8 @@ plt.xlabel("Temps")
 plt.ylabel("Taux de pertes")
 plt.title("Pertes")
 plt.grid()
-plt.show()
+plt.savefig("resultats/pertes.png", dpi=300)
+plt.close()
 
 plt.figure()
 plt.plot(result.times, result.collision_rate)
@@ -49,4 +55,5 @@ plt.xlabel("Temps")
 plt.ylabel("Collisions / temps")
 plt.title("Taux de collisions")
 plt.grid()
-plt.show()
+plt.savefig("resultats/collisions.png", dpi=300)
+plt.close()
