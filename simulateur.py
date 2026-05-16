@@ -30,7 +30,7 @@ def schedule(event_queue, time, event_type, station):
     heapq.heappush(event_queue, (time, event_type, station))
 
 
-def simulate(N, K, lambd, tau, T, seed=None):
+def simulate(N, K, lambd, tau, T, seed=None, exponential_backoff=True):
 
     rng = np.random.default_rng(seed)
 
@@ -120,7 +120,10 @@ def simulate(N, K, lambd, tau, T, seed=None):
 
                 i = backoff_state[station]
 
-                delay = expo_mean((2 ** i) * tau, rng)
+                if exponential_backoff:
+                    delay = expo_mean((2 ** i) * tau, rng)
+                else:
+                    delay = expo_mean(tau, rng)
 
                 backoff_state[station] += 1
 
