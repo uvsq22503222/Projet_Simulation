@@ -55,4 +55,4 @@ plt.savefig(
     os.path.join(os.path.dirname(os.path.dirname(__file__)), "resultats", "fig_comparaison_lambda.png"),
     dpi=300
 )
-plt.show()
+plt.close()

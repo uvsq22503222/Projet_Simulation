@@ -10,6 +10,9 @@ sys.path.append(
     )
 )
 
+resultats_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resultats")
+os.makedirs(resultats_dir, exist_ok=True)
+
 from simulateur import simulate
 
 
@@ -32,4 +35,5 @@ plt.xlabel("lambda")
 plt.ylabel("d(N, K, lambda, tau)")
 plt.title("Débit en fonction de lambda")
 plt.grid()
-plt.show()
+plt.savefig(os.path.join(resultats_dir, "debit_vs_lambda.png"), dpi=300)
+plt.close()

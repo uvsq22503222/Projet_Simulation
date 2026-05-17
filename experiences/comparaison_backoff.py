@@ -13,7 +13,8 @@ sys.path.append(
 from simulateur import simulate
 
 
-os.makedirs("resultats", exist_ok=True)
+resultats_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resultats")
+os.makedirs(resultats_dir, exist_ok=True)
 
 N = 10
 K = 10
@@ -77,7 +78,7 @@ plt.title("Comparaison des débits")
 plt.legend()
 plt.grid()
 
-plt.savefig("resultats/comparaison_debit.png", dpi=300)
+plt.savefig(os.path.join(resultats_dir, "comparaison_debit.png"), dpi=300)
 
 plt.close()
 
@@ -103,6 +104,6 @@ plt.title("Comparaison des collisions")
 plt.legend()
 plt.grid()
 
-plt.savefig("resultats/comparaison_collisions.png", dpi=300)
+plt.savefig(os.path.join(resultats_dir, "comparaison_collisions.png"), dpi=300)
 
 plt.close()
