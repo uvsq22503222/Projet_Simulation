@@ -15,90 +15,62 @@ from simulateur import simulate
 
 def intervalle_confiance_95(valeurs):
     valeurs = np.array(valeurs)
-
     moyenne = np.mean(valeurs)
     ecart_type = np.std(valeurs, ddof=1)
-
     demi_largeur = 1.96 * ecart_type / np.sqrt(len(valeurs))
-
-    borne_inf = moyenne - demi_largeur
-    borne_sup = moyenne + demi_largeur
-
-    return moyenne, borne_inf, borne_sup
+    return moyenne, moyenne - demi_largeur, moyenne + demi_largeur
 
 
 K = 10
-lambd = 1
 tau = 1
 T = 1000
-
-R = 30  # nombre de répétitions
-
+R = 30
 Ns = range(1, 31)
 
-moyennes = []
-bornes_inf = []
-bornes_sup = []
+resultats_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resultats")
 
-for N in Ns:
+for lambd in [1.0, 0.2]:
 
-    debits_N = []
+    print(f"\n=== λ = {lambd} ===")
 
-    for r in range(R):
+    moyennes = []
+    bornes_inf = []
+    bornes_sup = []
 
-        result = simulate(
-            N=N,
-            K=K,
-            lambd=lambd,
-            tau=tau,
-            T=T,
-            seed=1000 * N + r
-        )
+    for N in Ns:
+        debits_N = [
+            simulate(N=N, K=K, lambd=lambd, tau=tau, T=T, seed=1000 * N + r).final_throughput
+            for r in range(R)
+        ]
+        moyenne, borne_inf, borne_sup = intervalle_confiance_95(debits_N)
+        moyennes.append(moyenne)
+        bornes_inf.append(borne_inf)
+        bornes_sup.append(borne_sup)
+        print(f"N={N:2d} | moyenne={moyenne:.4f} | IC95=[{borne_inf:.4f}, {borne_sup:.4f}]")
 
-        debits_N.append(result.final_throughput)
+    indice_max = int(np.argmax(moyennes))
+    N_optimal = list(Ns)[indice_max]
+    print(f"\nN optimal = {N_optimal}, débit moyen = {moyennes[indice_max]:.4f}, "
+          f"IC95 = [{bornes_inf[indice_max]:.4f}, {bornes_sup[indice_max]:.4f}]")
 
-    moyenne, borne_inf, borne_sup = intervalle_confiance_95(debits_N)
+    erreurs_inf = np.array(moyennes) - np.array(bornes_inf)
+    erreurs_sup = np.array(bornes_sup) - np.array(moyennes)
 
-    moyennes.append(moyenne)
-    bornes_inf.append(borne_inf)
-    bornes_sup.append(borne_sup)
-
-    print(
-        f"N={N:2d} | "
-        f"moyenne={moyenne:.4f} | "
-        f"IC95=[{borne_inf:.4f}, {borne_sup:.4f}]"
+    plt.figure(figsize=(9, 5))
+    plt.errorbar(
+        list(Ns), moyennes,
+        yerr=[erreurs_inf, erreurs_sup],
+        marker="o", capsize=4, color="steelblue"
     )
-
-
-# Détermination du meilleur N
-indice_max = np.argmax(moyennes)
-N_optimal = list(Ns)[indice_max]
-
-print()
-print("Résultat final")
-print("--------------")
-print(f"N optimal estimé = {N_optimal}")
-print(f"Débit moyen max  = {moyennes[indice_max]:.4f}")
-print(f"IC95             = [{bornes_inf[indice_max]:.4f}, {bornes_sup[indice_max]:.4f}]")
-
-
-# Graphe avec barres d'erreur
-erreurs_inf = np.array(moyennes) - np.array(bornes_inf)
-erreurs_sup = np.array(bornes_sup) - np.array(moyennes)
-
-plt.figure()
-
-plt.errorbar(
-    list(Ns),
-    moyennes,
-    yerr=[erreurs_inf, erreurs_sup],
-    marker="o",
-    capsize=4
-)
-
-plt.xlabel("N")
-plt.ylabel("Débit moyen")
-plt.title("Débit moyen en fonction de N avec IC 95 %")
-plt.grid()
-
-plt.show()
+    plt.axvline(N_optimal, color="tomato", linestyle="--",
+                label=f"N optimal = {N_optimal}")
+    plt.xlabel("N")
+    plt.ylabel("Débit moyen")
+    plt.title(f"Débit moyen en fonction de N avec IC 95%\n(λ={lambd}, K={K}, τ={tau}, T={T}, R={R})")
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+    fname = os.path.join(resultats_dir, f"optimal_N_ic95_lambda{str(lambd).replace('.', '')}.png")
+    plt.savefig(fname, dpi=300)
+    plt.close()
+    print(f"Figure sauvegardée : {fname}")

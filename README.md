@@ -69,13 +69,13 @@ quand `lambda` varie.
 
 ## `experiences/variation_N.py`
 
-Étudie l’évolution du débit quand le nombre de stations `N` varie.
+Étudie l'évolution du débit quand le nombre de stations N varie, pour deux valeurs de λ (1.0 et 0.2) afin de comparer les comportements.
 
 ---
 
 ## `experiences/optimal_N_ic95.py`
 
-Détermine la valeur de `N` maximisant le débit avec un intervalle de confiance à 95 %.
+Détermine la valeur de N maximisant le débit avec un intervalle de confiance à 95 %, pour λ=1.0 et λ=0.2.
 
 ---
 

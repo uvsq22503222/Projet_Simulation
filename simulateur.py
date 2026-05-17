@@ -116,8 +116,6 @@ def simulate(N, K, lambd, tau, T, seed=None, exponential_backoff=True):
 
             if collided[station]:
 
-                queues[station] -= 1
-
                 i = backoff_state[station]
 
                 if exponential_backoff:
@@ -127,9 +125,8 @@ def simulate(N, K, lambd, tau, T, seed=None, exponential_backoff=True):
 
                 backoff_state[station] += 1
 
-                if queues[station] > 0:
-                    scheduled_start[station] = True
-                    schedule(event_queue, current_time + delay, START_TX, station)
+                scheduled_start[station] = True
+                schedule(event_queue, current_time + delay, START_TX, station)
 
             else:
 
